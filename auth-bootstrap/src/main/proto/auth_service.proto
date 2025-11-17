@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package hkd.auth.v1;
+
+option java_multiple_files = true;
+option java_package = "com.hkd.auth.grpc";
+option java_outer_classname = "AuthServiceProto";
+
+// Auth Service - 认证服务
+// 提供JWT验证、TOTP验证、权限检查等服务
+service AuthService {
+  // 验证JWT Token
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  // 验证TOTP双因素认证码
+  rpc ValidateTOTP (ValidateTOTPRequest) returns (ValidateTOTPResponse);
+
+  // 检查用户权限
+  rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionResponse);
+}
+
+// ============ ValidateToken ============
+
+message ValidateTokenRequest {
+  string access_token = 1;  // JWT Access Token
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;           // Token是否有效
+  string user_id = 2;       // 用户ID
+  string username = 3;      // 用户名
+  string email = 4;         // 邮箱
+  repeated string roles = 5; // 用户角色列表
+  int64 expires_at = 6;     // Token过期时间（Unix时间戳，秒）
+  string error_message = 7;  // 错误信息（如果invalid）
+}
+
+// ============ ValidateTOTP ============
+
+message ValidateTOTPRequest {
+  string user_id = 1;       // 用户ID
+  string totp_code = 2;     // 6位TOTP验证码
+}
+
+message ValidateTOTPResponse {
+  bool valid = 1;           // TOTP码是否有效
+  string error_message = 2;  // 错误信息（如果invalid）
+}
+
+// ============ CheckPermission ============
+
+message CheckPermissionRequest {
+  string user_id = 1;       // 用户ID
+  string resource = 2;      // 资源标识（如：order:withdraw）
+  string action = 3;        // 操作类型（如：create, read, update, delete）
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;         // 是否允许
+  string reason = 2;        // 拒绝原因（如果不允许）
+}

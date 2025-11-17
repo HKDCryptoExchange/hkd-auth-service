@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: auth-service
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:hkd_auth}
+    username: ${DB_USERNAME:hkd_admin}
+    password: ${DB_PASSWORD:hkd_dev_password_2024}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: ${DB_MIN_IDLE:5}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    encoding: UTF-8
+
+server:
+  port: ${SERVER_PORT:8013}
+  shutdown: graceful
+
+# gRPC Server Configuration
+grpc:
+  server:
+    port: ${GRPC_PORT:9013}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  health:
+    db:
+      enabled: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/**/*.xml
+
+# JWT Configuration
+hkd:
+  jwt:
+    secret: ${JWT_SECRET:hkd_jwt_secret_key_change_in_production_2024}
+    access-token-expire: 3600       # 1 hour in seconds
+    refresh-token-expire: 604800    # 7 days in seconds
+    issuer: hkd-exchange
+
+  totp:
+    window-size: 1                   # Time window for TOTP validation
+    issuer: HKD Exchange
+
+logging:
+  level:
+    root: INFO
+    com.hkd: DEBUG
+    io.grpc: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/auth-service.log
